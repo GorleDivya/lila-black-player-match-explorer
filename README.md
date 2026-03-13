@@ -1,3 +1,52 @@
+# LILA BLACK – Player Match Explorer (Tool + Dataset)
+
+## Live Demo
+
+Deployed app: `https://lila-black-player-match-explorer-ndrnafwppsqgycyzmfjmoz.streamlit.app/`
+
+## What this repo contains
+
+- **Interactive tool**: Streamlit app (`app.py`) to explore matches on top of minimaps (paths, events, heatmaps, timeline).
+- **Data utilities**: Parquet loading + event decoding + coordinate mapping (`player_data_analysis.py`).
+- **Docs**:
+  - `ARCHITECTURE.md`: 1-page architecture, data flow, coordinate mapping, assumptions, trade-offs.
+  - `INSIGHTS.md`: three learnings about the game surfaced using this tool.
+
+## Run locally
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Optional environment variable:
+- **`LILA_DATA_ROOT`**: path containing `February_10`, `February_11`, ... folders. Defaults to the repo root (next to `app.py`).
+
+## Three things learned (see `INSIGHTS.md` for full write-up)
+
+1. **High-traffic choke points on Ambrose Valley**
+   - **What caught my eye**: a consistent high-density movement band on the heatmap, intersecting common routes.
+   - **Evidence**: traffic heatmap stays strong for **humans-only**; kill/death markers cluster in the same region.
+   - **Actionable**: add alternate routes/cover or rebalance loot to reduce forced chokepoints.  
+     **Metrics impacted**: regional kill/death rates, time-to-death after entering the area, extraction success rate.
+   - **Why a level designer cares**: indicates an unintentionally “solved” lane that can create repetitive fights.
+
+2. **Bot patrol loops don’t always create engagement (Grand Rift)**
+   - **What caught my eye**: bot paths form repeated loops around certain POIs, but human paths rarely intersect.
+   - **Evidence**: separating humans vs bots visually shows low overlap; fewer bot-combat events than expected in bot-heavy areas.
+   - **Actionable**: re-route bots toward human traffic or pull players in via objectives/loot.  
+     **Metrics impacted**: human–bot encounter rate, bot-related kill/death counts, time spent in bot regions.
+   - **Why a level designer cares**: reveals AI placement/pathing that may not be contributing to player experience.
+
+3. **Storm deaths cluster near late-game extraction approaches**
+   - **What caught my eye**: `KilledByStorm` markers concentrate near extraction approaches late in the timeline.
+   - **Evidence**: filtering to `KilledByStorm` and scrubbing timeline increases clustering near exit routes and traffic hot spots.
+   - **Actionable**: improve approach readability, reduce bottlenecks, or adjust extraction/route distance relative to storm direction.  
+     **Metrics impacted**: storm-death rate near extraction, extraction success rate, late-game survival time.
+   - **Why a level designer cares**: “finish-line” storm deaths can feel unfair and harm match pacing/satisfaction.
+
+---
+
 # LILA BLACK - Player Event Data
 
 ## What is this?
