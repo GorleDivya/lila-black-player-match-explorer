@@ -249,15 +249,26 @@ def main():
 
         # Timeline slider (ts is per-match relative time)
         if "ts" in df_match.columns and not df_match["ts"].empty:
-            ts_min = df_match["ts"].min()
-            ts_max = df_match["ts"].max()
-            ts_cutoff = st.slider(
-                "Timeline (match-relative time)",
-                min_value=pd.to_datetime(ts_min),
-                max_value=pd.to_datetime(ts_max),
-                value=pd.to_datetime(ts_max),
-            )
-            df_match = df_match[df_match["ts"] <= ts_cutoff]
+            # Some Streamlit versions do not accept pandas.Timestamp in sliders.
+            # Use an integer slider in milliseconds relative to the match start.
+            ts_series = pd.to_datetime(df_match["ts"], errors="coerce")
+            ts_series = ts_series.dropna()
+            if not ts_series.empty:
+                ts_min = ts_series.min()
+                ts_max = ts_series.max()
+                ts0 = ts_min
+
+                min_ms = 0
+                max_ms = int((ts_max - ts0).total_seconds() * 1000)
+                cutoff_ms = st.slider(
+                    "Timeline (ms since match start)",
+                    min_value=min_ms,
+                    max_value=max_ms,
+                    value=max_ms,
+                    step=250,
+                )
+                cutoff_ts = ts0 + pd.Timedelta(milliseconds=int(cutoff_ms))
+                df_match = df_match[pd.to_datetime(df_match["ts"], errors="coerce") <= cutoff_ts]
 
     # Main layout: minimap + stats
     col_map, col_stats = st.columns([3, 1])
