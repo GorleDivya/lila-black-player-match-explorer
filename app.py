@@ -132,17 +132,26 @@ def make_minimap_figure(
 
     # Heatmap of movement / traffic
     if show_heatmap and len(df) > 0:
-        heat = go.Histogram2dcontour(
-            x=df["minimap_x"],
-            y=df["minimap_y"],
-            ncontours=20,
-            colorscale="Hot",
-            showscale=True,
-            opacity=0.6,
-            contours=dict(showlines=False),
-            name="Traffic heatmap",
-        )
-        fig.add_trace(heat)
+        heat_x = pd.to_numeric(df["minimap_x"], errors="coerce").dropna()
+        heat_y = pd.to_numeric(df.loc[heat_x.index, "minimap_y"], errors="coerce").dropna()
+        common_index = heat_x.index.intersection(heat_y.index)
+        if len(common_index) > 0:
+            heat_x = heat_x.loc[common_index].astype(float)
+            heat_y = heat_y.loc[common_index].astype(float)
+            try:
+                heat = go.Histogram2d(
+                    x=heat_x,
+                    y=heat_y,
+                    colorscale="Hot",
+                    showscale=True,
+                    opacity=0.55,
+                    name="Traffic heatmap",
+                )
+                fig.add_trace(heat)
+            except Exception:
+                # Keep the app usable even if a Plotly backend/version mismatch
+                # breaks heatmap traces in hosted environments.
+                pass
 
     # Player paths (lines)
     if show_paths and len(df) > 0:
